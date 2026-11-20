@@ -130,7 +130,7 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
   const at = (v, t) => v.amp * Math.sin(t * v.w + v.ph);
 
   let col = {}, W = 0, H = 0, S = 0, start = 0, raf = 0, onScreen = true;
-  let pts = [], groups = [], X, Y, DX, DY, VX, VY;
+  let pts = [], groups = [], X, Y, DX, DY, VX, VY, CLR, zones = [];
   let insight = null, nextInsight = 3.4, flashes = [], lastFlash = 0;
   // Each visit draws the plot in one of three styles: ASCII grid, ASCII glyphs, or dots.
   const mode = ['grid', 'glyph', 'dots'][Math.random() * 3 | 0];
@@ -144,7 +144,7 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
   // Each group has its own marker, like classes in a scatter plot.
   function makeField() {
     const n = Math.min(1100, Math.max(300, (W * H) / 900 | 0));
-    const add = (g, u, off, mark) => pts.push({ g, u, off, mark, sx: rand(), sy: rand(), d: rand() * 0.6 });
+    const add = (g, u, off, mark) => pts.push({ g, u, off, mark, sx: rand(), sy: rand(), d: rand() * 0.6, j: 0.6 + rand(), fl: 0.12 + rand() * 0.38 });
     const pick = (main) => (rand() < 0.7 ? main : 'dot');
     const strand = (p0, p3, bend, th, count, main, sparse) => {
       const nx = -(p3[1] - p0[1]), ny = p3[0] - p0[0];
@@ -183,7 +183,7 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
     groups.push(noise);
     while (pts.length < n) add(noise, rand(), rand(), 'dot');
     X = new Float32Array(pts.length); Y = new Float32Array(pts.length);
-    DX = new Float32Array(pts.length); DY = new Float32Array(pts.length); VX = new Float32Array(pts.length); VY = new Float32Array(pts.length);
+    DX = new Float32Array(pts.length); DY = new Float32Array(pts.length); VX = new Float32Array(pts.length); VY = new Float32Array(pts.length); CLR = new Float32Array(pts.length);
   }
 
   // Where each point sits in the embedding at time t (normalised 0–1 page units).
@@ -207,6 +207,23 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
     return [x - ty / l * p.off * S, y + tx / l * p.off * S];
   }
 
+  // Text stays clear without a hard edge: near each line of text, points taper to between 12% and 50%
+  // of their strength, each at its own distance, so a few still sit under the words.
+  function measureZones() {
+    const c = cv.getBoundingClientRect();
+    zones = [];
+    for (const el of document.querySelectorAll('.copy > *, .brand, footer > span')) {
+      const r = document.createRange(); r.selectNodeContents(el);
+      for (const b of r.getClientRects()) zones.push([b.left - c.left, b.top - c.top, b.right - c.left, b.bottom - c.top]);
+    }
+  }
+  const gap = (x, y) => {   // distance from (x, y) to the nearest line of text; 0 inside one
+    let d = Infinity;
+    for (const [l, t, r, b] of zones) d = Math.min(d, Math.hypot(Math.max(l - x, 0, x - r), Math.max(t - y, 0, y - b)));
+    return d;
+  };
+  const clearLine = (x0, y0, x1, y1) => { for (let k = 0; k <= 8; k++) if (gap(x0 + (x1 - x0) * k / 8, y0 + (y1 - y0) * k / 8) < 14) return false; return true; };
+
   const readColors = () => {
     const s = getComputedStyle(document.documentElement);
     col = { ink: s.getPropertyValue('--ink').trim(), muted: s.getPropertyValue('--muted').trim(), accent: s.getPropertyValue('--accent').trim() };
@@ -227,10 +244,10 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
     const R = Math.max(90, Math.min(220, Math.min(W, H) * 0.24));
     for (let tries = 0; tries < 30; tries++) {
       const hub = rand() * pts.length | 0;
-      if (X[hub] < 40 || Y[hub] < 40 || X[hub] > W - 40 || Y[hub] > H - 40) continue;
+      if (X[hub] < 40 || Y[hub] < 40 || X[hub] > W - 40 || Y[hub] > H - 40 || CLR[hub] < 0.99) continue;
       const want = 5 + (rand() * 3 | 0), gap = R * 0.22, near = [];
       for (const j of nearest(hub, 80, R)) {   // spread the picks out so the graph reads at a glance
-        if (near.length >= want) continue;
+        if (near.length >= want || CLR[j] < 0.99 || !clearLine(X[hub], Y[hub], X[j], Y[j])) continue;
         if ([hub, ...near].every((m) => (X[m] - X[j]) ** 2 + (Y[m] - Y[j]) ** 2 > gap * gap)) near.push(j);
       }
       if (near.length < 4) continue;
@@ -243,6 +260,7 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
         }
         links.push([best[1], best[2]]); inTree.push(best[2]); rest.splice(rest.indexOf(best[2]), 1);
       }
+      if (!links.every(([a, b]) => clearLine(X[a], Y[a], X[b], Y[b]))) continue;
       return { hub, members: inTree, links, t0: t };
     }
     return null;
@@ -253,7 +271,7 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
     lastFlash = t;
     const i = rand() * pts.length | 0;
     const [j] = nearest(i, 1, Math.min(W, H) * 0.08);
-    if (j !== undefined) flashes.push({ i, j, t0: t });
+    if (j !== undefined && CLR[i] > 0.99 && CLR[j] > 0.99 && clearLine(X[i], Y[i], X[j], Y[j])) flashes.push({ i, j, t0: t });
   }
 
   const fmt = (v) => (v < 0 ? '−' : '') + Math.abs(v).toFixed(2);
@@ -283,6 +301,7 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
       VX[i] = (VX[i] - DX[i] * 0.005) * 0.9; VY[i] = (VY[i] - DY[i] * 0.005) * 0.9;
       DX[i] += VX[i]; DY[i] += VY[i];
       X[i] = bx + DX[i]; Y[i] = by + DY[i];
+      const c = clamp(gap(X[i], Y[i]) / (28 * pts[i].j)), p2 = pts[i]; CLR[i] = p2.fl + (1 - p2.fl) * c * c * (3 - 2 * c);
     }
 
     if (live) {
@@ -296,7 +315,7 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
     // Plot markers: one dot size, two shades, plus rings and crosses for two classes.
     ctx.lineWidth = 1;
     for (let i = 0; i < pts.length; i++) {
-      const m = pts[i].mark, a = clamp((t - pts[i].d) / 0.6), x = X[i], y = Y[i];
+      const m = pts[i].mark, a = clamp((t - pts[i].d) / 0.6) * CLR[i], x = X[i], y = Y[i];
       if (m === 'dot') { ctx.globalAlpha = 0.6 * a; ctx.fillStyle = col.muted; dot(x, y, 1.4); ctx.fill(); }
       else if (m === 'ink') { ctx.globalAlpha = 0.9 * a; ctx.fillStyle = col.ink; dot(x, y, 1.4); ctx.fill(); }
       else if (m === 'ring') { ctx.globalAlpha = 0.9 * a; ctx.strokeStyle = col.ink; dot(x, y, 2.3); ctx.stroke(); }
@@ -390,7 +409,8 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
     for (let i = 0; i < pts.length; i++) {
       const k = cell(X[i], Y[i]); if (k < 0) continue;
       const m = pts[i].mark;
-      dens[k] += clamp((t - pts[i].d) / 0.6) * (m === 'dot' ? 1 : 1.6);
+      dens[k] += clamp((t - pts[i].d) / 0.6) * CLR[i] * (m === 'dot' ? 1 : 1.6);
+      if (CLR[i] < 0.4) continue;
       cls[k] = Math.max(cls[k], CLS[m]);
     }
     const { lines, marks } = insightParts(t);
@@ -423,7 +443,7 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
     ctx.font = FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     const CHAR = { dot: '.', ink: '*', ring: 'o', cross: 'x' };
     for (let i = 0; i < pts.length; i++) {
-      const m = pts[i].mark, a = clamp((t - pts[i].d) / 0.6);
+      const m = pts[i].mark, a = clamp((t - pts[i].d) / 0.6) * CLR[i];
       ctx.globalAlpha = (m === 'dot' ? 0.75 : 0.95) * a; ctx.fillStyle = m === 'dot' ? col.muted : col.ink;
       ctx.fillText(CHAR[m], X[i], Y[i]);
     }
@@ -463,7 +483,7 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
     cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     if (!pts.length) makeField();
-    insight = null;
+    measureZones(); insight = null;
     if (still.matches) drawStill();
   }).observe(page);
   new IntersectionObserver(([e]) => { onScreen = e.isIntersecting; render(); }).observe(cv);
@@ -482,6 +502,7 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
   addEventListener('pointercancel', () => { ptr.on = false; });
   document.documentElement.addEventListener('pointerleave', () => { ptr.on = false; });
 
+  document.fonts.ready.then(measureZones);
   readColors();
   render();
 })();
