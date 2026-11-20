@@ -501,14 +501,16 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
     if (!ptr.on) { ptr.lx = ptr.x; ptr.ly = ptr.y; ptr.on = true; }   // no jump when the pointer arrives
   };
   addEventListener('pointermove', place);
-  addEventListener('pointerdown', place);
+  // A click or tap pushes like a pointer arriving fast, so the points visibly move aside, then fades like hover.
+  const press = () => { ptr.k = 1; ptr.v = 40; };
+  addEventListener('pointerdown', (e) => { place(e); press(); });
   addEventListener('pointercancel', () => { ptr.on = false; });
   // On phones a finger works like a hover: touch events keep coming during a swipe even after the
   // browser takes over the gesture, so the points follow the finger. Passive, so scroll and zoom still work.
   const touch = (e) => { if (e.touches[0]) place(e.touches[0]); };
   // A tap counts as hovering at that spot: it shows at once and stays for a moment after the finger lifts.
   let lift = 0;
-  addEventListener('touchstart', (e) => { clearTimeout(lift); touch(e); ptr.k = 1; }, { passive: true });
+  addEventListener('touchstart', (e) => { clearTimeout(lift); touch(e); press(); }, { passive: true });
   addEventListener('touchmove', touch, { passive: true });
   addEventListener('touchend', (e) => { if (!e.touches.length) lift = setTimeout(() => { ptr.on = false; }, 700); }, { passive: true });
   addEventListener('touchcancel', () => { ptr.on = false; }, { passive: true });
