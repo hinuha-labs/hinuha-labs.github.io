@@ -291,7 +291,6 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
     if (j !== undefined && CLR[i] > 0.99 && CLR[j] > 0.99 && clearLine(X[i], Y[i], X[j], Y[j])) flashes.push({ i, j, t0: t });
   }
 
-  const fmt = (v) => (v < 0 ? '−' : '') + Math.abs(v).toFixed(2);
 
   function draw(t, live) {
     ctx.clearRect(0, 0, W, H);
@@ -366,18 +365,13 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
       if (lit) { ctx.globalAlpha = lit * fade; ctx.fillStyle = col.accent; ctx.fill(); }
     }
 
-    // Readout: the point nearest the pointer gets a ring and its embedding coordinates.
+    // The point nearest the pointer gets a small ring.
     if (ptr.k > 0.01) {
       let best = -1, bd = 70 * 70;
       for (let i = 0; i < pts.length; i++) { const d = (X[i] - ptr.x) ** 2 + (Y[i] - ptr.y) ** 2; if (d < bd) { bd = d; best = i; } }
       if (best >= 0) {
         const x = X[best], y = Y[best];
         ctx.globalAlpha = ptr.k; ctx.strokeStyle = col.ink; ctx.lineWidth = 1.25; dot(x, y, 6); ctx.stroke();
-        const label = fmt((x / W) * 6 - 3) + ', ' + fmt(3 - (y / H) * 6);
-        ctx.font = '500 11px "Martian Mono", monospace'; ctx.fillStyle = col.muted;
-        const w = ctx.measureText(label).width, right = x + 12 + w < W - 8;
-        ctx.textAlign = right ? 'left' : 'right'; ctx.textBaseline = 'middle';
-        ctx.fillText(label, right ? x + 12 : x - 12, y - 12);
       }
     }
     ctx.globalAlpha = 1;
@@ -406,13 +400,6 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
     let best = -1, bd = 70 * 70;
     for (let i = 0; i < pts.length; i++) { const d = (X[i] - ptr.x) ** 2 + (Y[i] - ptr.y) ** 2; if (d < bd) { bd = d; best = i; } }
     return best;
-  };
-  const label = (x, y) => {
-    const text = fmt((x / W) * 6 - 3) + ', ' + fmt(3 - (y / H) * 6);
-    ctx.font = FONT; ctx.fillStyle = col.muted; ctx.globalAlpha = ptr.k;
-    const w = ctx.measureText(text).width, right = x + 18 + w < W - 8;
-    ctx.textAlign = right ? 'left' : 'right'; ctx.fillText(text, right ? x + 18 : x - 18, y - CH);
-    ctx.textAlign = 'center';
   };
 
   // Grid: the plot drawn on a character grid; denser cells get heavier characters.
@@ -452,7 +439,6 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
       ctx.globalAlpha = Math.min(1, 0.35 + d * 0.15); ctx.fillStyle = ink ? col.ink : col.muted;
       ctx.fillText(ch, x, y);
     }
-    if (near >= 0) { const k = cell(X[near], Y[near]); label(((k % cols) + 0.5) * cw, ((k / cols | 0) + 0.5) * CH); }
   }
 
   // Glyphs: every data point is one character, free to move.
@@ -475,7 +461,7 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
     ctx.font = FONT;
     if (ptr.k > 0.01) {
       const near = nearestToPointer();
-      if (near >= 0) { ctx.globalAlpha = ptr.k; ctx.fillStyle = col.ink; ctx.fillText('[', X[near] - 8, Y[near]); ctx.fillText(']', X[near] + 8, Y[near]); label(X[near], Y[near]); }
+      if (near >= 0) { ctx.globalAlpha = ptr.k; ctx.fillStyle = col.ink; ctx.fillText('[', X[near] - 8, Y[near]); ctx.fillText(']', X[near] + 8, Y[near]); }
     }
   }
 
@@ -518,6 +504,13 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
   addEventListener('pointerdown', place);
   addEventListener('pointerup', (e) => { if (e.pointerType !== 'mouse') ptr.on = false; });
   addEventListener('pointercancel', () => { ptr.on = false; });
+  // On phones a finger works like a hover: touch events keep coming during a swipe even after the
+  // browser takes over the gesture, so the points follow the finger. Passive, so scroll and zoom still work.
+  const touch = (e) => { if (e.touches[0]) place(e.touches[0]); };
+  addEventListener('touchstart', touch, { passive: true });
+  addEventListener('touchmove', touch, { passive: true });
+  addEventListener('touchend', (e) => { if (!e.touches.length) ptr.on = false; }, { passive: true });
+  addEventListener('touchcancel', () => { ptr.on = false; }, { passive: true });
   document.documentElement.addEventListener('pointerleave', () => { ptr.on = false; });
 
   document.fonts.ready.then(measureZones);
