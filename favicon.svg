@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <style>
+    .l { stroke: #111111; fill: #111111; }
+    .h { fill: #7A1F2B; }
+    @media (prefers-color-scheme: dark) {
+      .l { stroke: #FFFFFF; fill: #FFFFFF; }
+      .h { fill: #E07380; }
+    }
+  </style>
+  <g class="l" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M17 31 V69 M17 31 L50 50 M50 12 V88 M50 12 L83 31 V69" fill="none"/>
+    <circle cx="17" cy="31" r="8" stroke="none"/><circle cx="17" cy="69" r="8" stroke="none"/>
+    <circle cx="50" cy="12" r="8" stroke="none"/><circle cx="50" cy="88" r="8" stroke="none"/>
+    <circle cx="83" cy="31" r="8" stroke="none"/><circle cx="83" cy="69" r="8" stroke="none"/>
+  </g>
+  <circle class="h" cx="50" cy="50" r="12"/>
+</svg>
