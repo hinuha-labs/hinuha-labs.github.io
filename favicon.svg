@@ -1,17 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 104 104">
   <style>
-    .l { stroke: #111111; fill: #111111; }
-    .h { fill: #7A1F2B; }
+    .tile { fill: #111111; }
+    .edge { fill: none; stroke: none; }
+    .ln { stroke: #FFFFFF; }
+    .ring { fill: #111111; stroke: #FFFFFF; }
+    .hub { fill: #FFFFFF; }
     @media (prefers-color-scheme: dark) {
-      .l { stroke: #FFFFFF; fill: #FFFFFF; }
-      .h { fill: #E07380; }
+      .edge { stroke: rgba(255, 255, 255, .22); }
     }
   </style>
-  <g class="l" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M17 31 V69 M17 31 L50 50 M50 12 V88 M50 12 L83 31 V69" fill="none"/>
-    <circle cx="17" cy="31" r="8" stroke="none"/><circle cx="17" cy="69" r="8" stroke="none"/>
-    <circle cx="50" cy="12" r="8" stroke="none"/><circle cx="50" cy="88" r="8" stroke="none"/>
-    <circle cx="83" cy="31" r="8" stroke="none"/><circle cx="83" cy="69" r="8" stroke="none"/>
+  <rect class="tile" width="104" height="104" rx="22"/>
+  <g transform="translate(19.76 19.76) scale(.6448)" stroke-width="5">
+    <path class="ln" d="M17 31 V69 M17 31 L50 50 M50 12 V88 M50 12 L83 31 V69" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <g class="ring"><circle cx="17" cy="31" r="6"/><circle cx="17" cy="69" r="6"/><circle cx="50" cy="12" r="6"/><circle cx="50" cy="88" r="6"/><circle cx="83" cy="31" r="6"/><circle cx="83" cy="69" r="6"/></g>
+    <circle class="hub" cx="50" cy="50" r="9"/>
   </g>
-  <circle class="h" cx="50" cy="50" r="12"/>
+  <rect class="edge" x=".5" y=".5" width="103" height="103" rx="21.5"/>
 </svg>

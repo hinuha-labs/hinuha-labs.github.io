@@ -56,7 +56,8 @@ body {
 }
 #cloud { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; display: block; }
 
-.mark { display: block; flex: none; --m-line: var(--ink); --m-ring: var(--paper); --m-hub: var(--accent); }
+.mark { display: block; flex: none; --m-line: var(--ink); --m-ring: var(--paper); --m-hub: var(--ink); }
+.mark.small { --m-sw: 5; }
 
 nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .brand { display: flex; align-items: center; gap: 10px; font: 500 15px/1 var(--mono); letter-spacing: -0.03em; }
@@ -91,13 +92,6 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
       <circle cx="50" cy="50" r="9" style="fill:var(--m-hub);stroke:none"/>
     </g>
   </symbol>
-  <symbol id="m8s" viewBox="0 0 100 100">
-    <g style="stroke-width:8">
-      <path d="M17 31 V69 M17 31 L50 50 M50 12 V88 M50 12 L83 31 V69" style="fill:none;stroke:var(--m-line);stroke-linecap:round;stroke-linejoin:round"/>
-      <g style="fill:var(--m-line)"><circle cx="17" cy="31" r="8"/><circle cx="17" cy="69" r="8"/><circle cx="50" cy="12" r="8"/><circle cx="50" cy="88" r="8"/><circle cx="83" cy="31" r="8"/><circle cx="83" cy="69" r="8"/></g>
-      <circle cx="50" cy="50" r="12" style="fill:var(--m-hub)"/>
-    </g>
-  </symbol>
 </svg>
 
 <canvas id="cloud" aria-hidden="true"></canvas>
@@ -116,7 +110,7 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
 </main>
 
 <footer class="wrap">
-  <span class="brand"><svg class="mark" width="20" height="20" aria-hidden="true"><use href="#m8s"/></svg>Hinuha Labs</span>
+  <span class="brand"><svg class="mark small" width="20" height="20" aria-hidden="true"><use href="#m8"/></svg>Hinuha Labs</span>
   <span>© 2026</span>
 </footer>
 
