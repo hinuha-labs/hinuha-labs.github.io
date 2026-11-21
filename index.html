@@ -138,7 +138,7 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
   const FONT = '500 12px "Martian Mono", monospace';
   let cw = 7.5;
   const CH = 15;
-  const ptr = { x: 0, y: 0, lx: 0, ly: 0, v: 0, on: false, k: 0 };   // mouse or finger; k fades it in and out
+  const ptr = { x: 0, y: 0, lx: 0, ly: 0, v: 0, on: false, k: 0, b: 0, px: 0, py: 0 };   // mouse or finger; k fades it in and out
 
   // The field looks like a 2-D embedding: curved strands with dense middles and sparse tails,
   // thin bridges between some of them, a few elongated cores, and a little background noise.
@@ -310,9 +310,13 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
       if (live && ptr.k > 0.01) {
         const dx = bx + DX[i] - ptr.x, dy = by + DY[i] - ptr.y, d = Math.hypot(dx, dy);
         if (d < PR && d > 0.1) {
-          const kick = (0.05 + ptr.v * 0.12) * (1 - d / PR) ** 2 * ptr.k;
+          const kick = (0.02 + ptr.v * 0.04) * (1 - d / PR) ** 2 * ptr.k;   // hover: a gentle nudge
           VX[i] += dx / d * kick; VY[i] += dy / d * kick;
         }
+      }
+      if (live && ptr.b > 0.01) {   // click or tap: a stronger push over a wider radius
+        const CR = PR * 1.6, dx = bx + DX[i] - ptr.px, dy = by + DY[i] - ptr.py, d = Math.hypot(dx, dy);
+        if (d < CR && d > 0.1) { const kick = 2 * ptr.b * (1 - d / CR) ** 2; VX[i] += dx / d * kick; VY[i] += dy / d * kick; }
       }
       VX[i] = (VX[i] - DX[i] * 0.005) * 0.9; VY[i] = (VY[i] - DY[i] * 0.005) * 0.9;
       DX[i] += VX[i]; DY[i] += VY[i];
@@ -320,6 +324,7 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
       const c = clamp(gap(X[i], Y[i]) / (42 * pts[i].j)), p2 = pts[i]; CLR[i] = p2.fl + (1 - p2.fl) * c * c * (3 - 2 * c);
     }
 
+    ptr.b *= 0.8;
     if (live) {
       flash(t);
       flashes = flashes.filter((f) => t - f.t0 < 1.8);
@@ -501,8 +506,8 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
     if (!ptr.on) { ptr.lx = ptr.x; ptr.ly = ptr.y; ptr.on = true; }   // no jump when the pointer arrives
   };
   addEventListener('pointermove', place);
-  // A click or tap pushes like a pointer arriving fast, so the points visibly move aside, then fades like hover.
-  const press = () => { ptr.k = 1; ptr.v = 40; };
+  // A click or tap gives one stronger, wider push from where it lands, on top of the gentle hover.
+  const press = () => { ptr.k = 1; ptr.b = 1; ptr.px = ptr.x; ptr.py = ptr.y; };
   addEventListener('pointerdown', (e) => { place(e); press(); });
   addEventListener('pointercancel', () => { ptr.on = false; });
   // On phones a finger works like a hover: touch events keep coming during a swipe even after the
