@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Hinuha Labs</title>
-<meta name="description" content="Hinuha Labs builds AI products and solutions: language models and agents, computer vision, and AI on real-world data.">
+<meta name="description" content="From data to insight. Hinuha Labs builds solutions through research, data, and storytelling.">
 <meta property="og:title" content="Hinuha Labs">
-<meta property="og:description" content="AI that reasons from your data.">
+<meta property="og:description" content="From data to insight.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://hinuha-labs.github.io/">
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
@@ -22,6 +22,7 @@
   --mono: "Martian Mono", "Courier New", monospace;
   --head: "Familjen Grotesk", Arial, sans-serif;
   --sans: "Funnel Sans", Arial, sans-serif;
+  --ipa: "Noto Sans", Arial, sans-serif;
 
   --mist: var(--kapis); --paper: var(--sampaguita); --page: var(--paper); --ink: var(--kamagong);
   --muted: var(--abo); --line: rgba(17, 17, 17, .16); --accent: var(--mabolo);
@@ -62,7 +63,12 @@ body {
 nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .brand { display: flex; align-items: center; gap: 10px; font: 500 15px/1 var(--mono); letter-spacing: -0.03em; }
 
-.label { font: 500 11px/1.4 var(--mono); text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 0; }
+.entry { margin: 0; }
+.entry dt { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; }
+.entry .word { font: 600 22px/1.2 var(--head); }
+.entry .ipa { font: 15px/1.4 var(--ipa); color: var(--muted); }
+.entry .pos { font-size: 15px; font-style: italic; color: var(--muted); }
+.entry dd { margin: 4px 0 0; font-size: 16px; text-wrap: balance; }
 
 .hero {
   flex: 1; display: flex; align-items: center;
@@ -74,7 +80,7 @@ h1 {
   font: 600 clamp(40px, 7cqi, 56px)/1.04 var(--head); letter-spacing: -0.02em;
   margin: 16px 0 20px; max-width: 12ch; text-wrap: balance;
 }
-.lede { font-size: 18px; margin: 0; max-width: 34ch; }
+.lede { font-size: 18px; margin: 0; max-width: 34ch; text-wrap: balance; }
 
 footer {
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
@@ -103,9 +109,12 @@ footer .brand { color: var(--ink); font-size: 13px; gap: 8px; }
 
   <section class="hero">
     <div class="copy">
-      <p class="label">Hinuha · Filipino for “inference”</p>
-      <h1>AI that reasons from your data.</h1>
-      <p class="lede">We build AI products and solutions: language models and agents, computer vision, and AI on real-world data such as maps, sensors and imagery.</p>
+      <dl class="entry">
+        <dt><span class="word" lang="fil">hi·nú·ha</span><span class="ipa">/hɪˈnuha/</span><span class="pos">noun, Filipino</span></dt>
+        <dd>inference; a conclusion reasoned from evidence</dd>
+      </dl>
+      <h1>From data to insight.</h1>
+      <p class="lede">We build solutions through research, data, and storytelling.</p>
     </div>
   </section>
 </main>
